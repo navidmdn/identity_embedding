@@ -44,3 +44,12 @@ def test_mlm_data_preparation(bios, train_params):
 
 
 
+params = [
+    {"epochs": 1, "model_path": "/tmp/results", "model_name": "bert-base-uncased"}
+]
+@pytest.mark.parametrize("bios", [[['vocal singer', 'worker', 'professor'], ['teacher', 'father'],]])
+@pytest.mark.parametrize("train_params", params)
+def test_mlm_fine_tuning(bios, train_params):
+    model_name = tokenizer_name = train_params['model_name']
+    fine_tune_masked_lm(bios, model_name, tokenizer_name, epochs=train_params['epochs'], output_dir=train_params['model_path'],
+                        batch_size=1, max_train_samples=1, max_val_samples=1)

@@ -10,6 +10,8 @@ from transformers import AutoModelForMaskedLM
 from transformers import AutoTokenizer
 from src.util import load_pickled_data
 
+import shutil
+import os
 
 
 def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
@@ -21,17 +23,20 @@ def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
     return model, tokenizer
 
 
-def whole_pi_masking_data_collator(features, tokenizer):
-    for feature in features:
-        input_ids = feature["input_ids"]
-        labels = feature["labels"]
-        new_labels = [-100] * len(labels)
+def whole_pi_masking_data_collator(tokenizer):
+    def _whole_pi_masking_data_collator(features, tokenizer=tokenizer):
+        for feature in features:
+            input_ids = feature["input_ids"]
+            labels = feature["labels"]
+            new_labels = [-100] * len(labels)
 
-        for idx, (token_id, label) in enumerate(zip(input_ids, labels)):
-            if token_id == tokenizer.mask_token_id:
-                new_labels[idx] = label
-        feature["labels"] = new_labels
-    return default_data_collator(features)
+            for idx, (token_id, label) in enumerate(zip(input_ids, labels)):
+                if token_id == tokenizer.mask_token_id:
+                    new_labels[idx] = label
+            feature["labels"] = new_labels
+        return default_data_collator(features)
+
+    return _whole_pi_masking_data_collator
 
 
 def prepare_train_dataset(bios: List[List[str]], tokenizer, max_length: int = 80,
@@ -75,10 +80,17 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
                         max_train_samples: int = int(1e6), max_val_samples: int = int(1e4), epochs: int = 1,
                         batch_size: int = 8, output_dir: str = "./results", ):
 
+    if os.path.exists(output_dir):
+        try:
+            shutil.rmtree(output_dir, ignore_errors=True)
+            os.remove(output_dir)
+        except OSError as e:
+            pass
+
     model, tokenizer = load_clm_model_and_tokenizer(model_name, tokenizer_name)
     train_val_dataset = prepare_train_dataset(bios, tokenizer, max_length, max_train_samples, max_val_samples)
 
-    logging_steps = int(len(train_val_dataset["train"]) / batch_size / 10)
+    logging_steps = max(1, int(len(train_val_dataset["train"]) / batch_size / 10))
     args = TrainingArguments(
         # output_dir: directory where the model checkpoints will be saved.
         output_dir=output_dir,
@@ -105,8 +117,8 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
         model=model,
         args=args,
         train_dataset=train_val_dataset["train"],
-        eval_dataset=train_val_dataset["tests"],
-        data_collator=whole_pi_masking_data_collator,
+        eval_dataset=train_val_dataset["test"],
+        data_collator=whole_pi_masking_data_collator(tokenizer),
     )
 
     trainer.train()
