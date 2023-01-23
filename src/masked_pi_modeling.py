@@ -8,10 +8,7 @@ from transformers.data.data_collator import default_data_collator
 from typing import List
 from transformers import AutoModelForMaskedLM
 from transformers import AutoTokenizer
-from src.util import load_pickled_data
-
-import shutil
-import os
+from src.util import load_pickled_data, remove_file_or_dir
 
 
 def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
@@ -80,13 +77,7 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
                         max_train_samples: int = int(1e6), max_val_samples: int = int(1e4), epochs: int = 1,
                         batch_size: int = 8, output_dir: str = "./results", ):
 
-    if os.path.exists(output_dir):
-        try:
-            shutil.rmtree(output_dir, ignore_errors=True)
-            os.remove(output_dir)
-        except OSError as e:
-            pass
-
+    remove_file_or_dir(output_dir)
     model, tokenizer = load_clm_model_and_tokenizer(model_name, tokenizer_name)
     train_val_dataset = prepare_train_dataset(bios, tokenizer, max_length, max_train_samples, max_val_samples)
 

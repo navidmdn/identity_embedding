@@ -34,7 +34,7 @@ def test_mlm_data_preparation(bios, train_params):
 
     assert isinstance(dataset, DatasetDict)
     samples = [dataset["train"][0], ]
-    instances = whole_pi_masking_data_collator(samples, tokenizer)
+    instances = whole_pi_masking_data_collator(tokenizer)(samples)
     input_ids = instances['input_ids'][0]
     labels = instances['labels'][0]
     assert tokenizer.decode(input_ids, skip_special_tokens=True) == ', worker, professor'
