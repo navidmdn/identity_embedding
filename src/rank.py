@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer, models, util
 from torch.nn.functional import log_softmax
 
 
-def get_results_batched(model, tokenizer, str_l, bs=256, average_k_layers=1, device='cpu'):
+def get_bertbased_results_batched(model, tokenizer, str_l, bs=256, average_k_layers=1, device='cpu'):
     i = 0
     result = []
     pbar = tqdm(total=len(str_l))
@@ -68,8 +68,8 @@ def calculate_rankings(model, dataset, pi_dict, device='cpu', cosine_bs=512, emb
         emb_x = get_sbertbased_results_batched(model, X, bs=emb_bs)
         emb_all = get_sbertbased_results_batched(model, pi_list, bs=emb_bs)
     else:
-        emb_x = get_results_batched(model, tokenizer, X, average_k_layers=average_k_layers, bs=emb_bs)
-        emb_all = get_results_batched(model, tokenizer, pi_list, average_k_layers=average_k_layers, bs=emb_bs)
+        emb_x = get_bertbased_results_batched(model, tokenizer, X, average_k_layers=average_k_layers, bs=emb_bs)
+        emb_all = get_bertbased_results_batched(model, tokenizer, pi_list, average_k_layers=average_k_layers, bs=emb_bs)
 
     emb_x = normalize(emb_x)
     emb_all = normalize(emb_all)

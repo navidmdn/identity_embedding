@@ -4,11 +4,12 @@ import collections
 import numpy as np
 from transformers import TrainingArguments
 from transformers import Trainer
-from transformers import default_data_collator
+from transformers.data.data_collator import default_data_collator
 from typing import List
 from transformers import AutoModelForMaskedLM
 from transformers import AutoTokenizer
-from util import load_pickled_data
+from src.util import load_pickled_data
+
 
 
 def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
@@ -20,7 +21,7 @@ def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
     return model, tokenizer
 
 
-def whole_pi_masking_data_collator(features: List[dict], tokenizer):
+def whole_pi_masking_data_collator(features, tokenizer):
     for feature in features:
         input_ids = feature["input_ids"]
         labels = feature["labels"]
@@ -33,29 +34,34 @@ def whole_pi_masking_data_collator(features: List[dict], tokenizer):
     return default_data_collator(features)
 
 
-def prepare_train_dataset(bios: List[List[str]], model, tokenizer, max_length: int = 80,
+def prepare_train_dataset(bios: List[List[str]], tokenizer, max_length: int = 80,
                           max_train_samples: int = int(1e6), max_val_samples: int = int(1e4)):
-    train_df = pd.DataFrame({'bios_l': bios})
+    train_df = pd.DataFrame([{'bios': ", ".join(t), "bios_l": t} for t in bios])
     train_dataset = Dataset.from_pandas(train_df)
 
     # before masking we need to tokenize the bios and get the label ids
-    label_ids = tokenizer(train_dataset["bios_l"], padding='max_length', max_length=max_length, truncation=True)["input_ids"]
+    label_ids = tokenizer(train_dataset["bios"], padding='max_length', max_length=max_length, truncation=True)["input_ids"]
 
     def preprocess(examples):
         # randomly mask one pi in each bio
         masked_examples = []
         for bio in examples["bios_l"]:
             masked_bio = bio.copy()
-            masked_idx = np.random.choice(len(bio), size=1, replace=False)[0]
-            masked_bio[masked_idx] = "[MASK]"
-            masked_examples.append(masked_bio)
+            masked_idx = np.random.choice(len(masked_bio), size=1, replace=False)[0]
+            pi = masked_bio[masked_idx]
+            pi_ids = tokenizer([pi, ])["input_ids"][0]
+            masked_pi = "[MASK]" * (len(pi_ids)-2)
+            masked_bio[masked_idx] = masked_pi
+            masked_examples.append(", ".join(masked_bio))
+
+        examples['bios'] = masked_examples
 
         result = tokenizer(examples["bios"], padding='max_length', max_length=80, truncation=True)
         result["labels"] = label_ids
         return result
 
     tokenized_dataset = train_dataset.map(
-        preprocess, batched=True, remove_columns=["bios"], batch_size=250, num_proc=4
+        preprocess, batched=True, remove_columns=["bios", "bios_l"], batch_size=250, num_proc=1
     )
 
     sampled_dataset = tokenized_dataset.train_test_split(
@@ -70,8 +76,7 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
                         batch_size: int = 8, output_dir: str = "./results", ):
 
     model, tokenizer = load_clm_model_and_tokenizer(model_name, tokenizer_name)
-    train_val_dataset = prepare_train_dataset(bios, model, tokenizer, max_length, max_train_samples,
-                                                       max_val_samples)
+    train_val_dataset = prepare_train_dataset(bios, tokenizer, max_length, max_train_samples, max_val_samples)
 
     logging_steps = int(len(train_val_dataset["train"]) / batch_size / 10)
     args = TrainingArguments(
@@ -87,7 +92,7 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
         learning_rate=2e-5,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
-        num_train_epochs=2,
+        num_train_epochs=epochs,
         load_best_model_at_end=True,
         metric_for_best_model="loss",
         report_to="tensorboard",
@@ -100,7 +105,7 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
         model=model,
         args=args,
         train_dataset=train_val_dataset["train"],
-        eval_dataset=train_val_dataset["test"],
+        eval_dataset=train_val_dataset["tests"],
         data_collator=whole_pi_masking_data_collator,
     )
 

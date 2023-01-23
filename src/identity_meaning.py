@@ -2,7 +2,7 @@ import pickle
 from collections import OrderedDict
 
 
-def load_bios(dataset='twitter', mode='test'):
+def load_bios(dataset='twitter', mode='tests'):
     with open(f'data/{dataset}_{mode}_bios.pkl', 'rb') as f:
         bios = pickle.load(f)
 
@@ -19,7 +19,7 @@ def build_restricted_target_dataset(bios, vocab, generalization):
             if pi in vocab:
                 remaining = [x for x in bio if x != pi]
 
-                # we want the remainig not to be available in vocab to test generalization
+                # we want the remainig not to be available in vocab to tests generalization
                 if generalization:
                     gen = True
                     for rem in remaining:
@@ -48,7 +48,7 @@ def create_restricted_target_test_dataset(dataset, vocab, generalization=False):
     print(f"creating dataset for {dataset}:")
 
     test_bios = load_bios(dataset)
-    print(f"total test bios: {len(test_bios)}")
+    print(f"total tests bios: {len(test_bios)}")
 
     filtered_test_bios = []
     for bio in test_bios:
@@ -57,10 +57,10 @@ def create_restricted_target_test_dataset(dataset, vocab, generalization=False):
                 filtered_test_bios.append(bio)
                 break
 
-    print(f"total test bios after restriction: {len(filtered_test_bios)}")
+    print(f"total tests bios after restriction: {len(filtered_test_bios)}")
 
     test_ds = build_restricted_target_dataset(filtered_test_bios, vocab, generalization)
-    print(f"total test dataset entires: ", len(test_ds))
+    print(f"total tests dataset entires: ", len(test_ds))
     print(f"vocab size:", len(vocab))
     return test_ds, vocab
 

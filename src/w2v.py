@@ -1,6 +1,6 @@
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
-from util import load_pickled_data
+from src.util import load_pickled_data
 import argparse
 
 
@@ -25,10 +25,10 @@ class Callback(CallbackAny2Vec):
 
 
 def train_w2v_model(sentences, model_path, epochs=300, vector_size=768, window=8, min_count=1, workers=4, sg=1,
-                    negative=8, seed=1, compute_loss=True, callbacks=None):
-
+                    negative=8, seed=1, compute_loss=True):
+    monitor_loss_cb = [Callback(), ]
     model = Word2Vec(sentences, vector_size=vector_size, window=window, min_count=min_count, workers=workers, sg=sg,
-                     negative=negative, seed=seed,compute_loss=compute_loss, callbacks=callbacks, epochs=epochs)
+                     negative=negative, seed=seed,compute_loss=compute_loss, callbacks=monitor_loss_cb, epochs=epochs)
     model.save(model_path)
     return model
 
