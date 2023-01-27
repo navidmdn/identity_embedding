@@ -1,16 +1,13 @@
 import pytest
-from src.w2v import train_w2v_model
-from src.masked_pi_modeling import prepare_train_dataset, fine_tune_masked_lm, load_clm_model_and_tokenizer,\
+from src.models.w2v import train_w2v_model
+from src.models.masked_pi_modeling import prepare_train_dataset, fine_tune_masked_lm, load_clm_model_and_tokenizer,\
     whole_pi_masking_data_collator
-from src.contrastive_learning import generate_triples, build_neighborhood_dict, Triple, fine_tune
+from src.models.contrastive_learning import generate_triples, build_neighborhood_dict, Triple, fine_tune
 from datasets import DatasetDict
 import numpy as np
 import torch
 import random
 
-random.seed(1)
-torch.manual_seed(1)
-np.random.seed(1)
 
 params = [
     {"epochs": 1, "model_path": "/tmp/results"},
@@ -30,6 +27,10 @@ params = [
 @pytest.mark.parametrize("bios", [[['vocal singer', 'worker', 'professor'], ['teacher', 'father'],]])
 @pytest.mark.parametrize("train_params", params)
 def test_mlm_data_preparation(bios, train_params):
+    random.seed(1)
+    torch.manual_seed(1)
+    np.random.seed(1)
+
     model_name = tokenizer_name = train_params['model_name']
     _, tokenizer = load_clm_model_and_tokenizer(model_name, tokenizer_name)
     dataset = prepare_train_dataset(bios, tokenizer,
@@ -60,10 +61,11 @@ def test_mlm_fine_tuning(bios, train_params):
 @pytest.mark.parametrize("bios", [[['vocal singer', 'worker', 'professor'], ['worker', 'father'],
                                    ['professor', 'teacher'],]])
 def test_contrastive_learning_triplet_generation(bios):
+    random.seed(1)
     np.random.seed(1)
+
     neighborhood_dict = build_neighborhood_dict(bios)
     triples = generate_triples(bios, neighborhood_dict)
-    print(triples)
     assert triples[0] == Triple('vocal singer', 'worker, professor', 'teacher')
     assert triples[1] == Triple('father', 'worker', 'vocal singer')
     assert triples[2] == Triple('teacher', 'professor', 'vocal singer')
