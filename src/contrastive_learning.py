@@ -3,17 +3,24 @@ from collections import Counter
 from sentence_transformers import SentenceTransformer, InputExample, losses, util
 from sentence_transformers import evaluation
 from torch.utils.data import DataLoader
-from util import load_pickled_data
+from src.util import load_pickled_data
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import numpy as np
 from random import randint
+
 
 class Triple:
     def __init__(self, anchor, positive, negative):
         self.anchor = anchor
         self.positive = positive
         self.negative = negative
+
+    def __repr__(self):
+        return f"Triple(anchor={self.anchor}, positive={self.positive}, negative={self.negative})"
+
+    def __eq__(self, other):
+        return self.anchor == other.anchor and self.positive == other.positive and self.negative == other.negative
 
 
 def build_neighborhood_dict(list_token_list: List[List[str]]) -> Dict:
@@ -40,7 +47,7 @@ def generate_triples(list_token_list: List[List[str]], neighborhood_dict: Dict) 
         pos = ", ".join(pos)
 
         neg_idx = randint(0, len(pi_set) - 1)
-        while pi_set[neg_idx] in neighborhood_dict[anchor]:
+        while pi_set[neg_idx] in neighborhood_dict[anchor] or pi_set[neg_idx] == anchor:
             neg_idx = randint(0, len(pi_set) - 1)
 
         samples.append(Triple(anchor, pos, pi_set[neg_idx]))
@@ -74,10 +81,9 @@ def get_evaluator(evaluation_triples: List[Triple]):
     return evaluation.EmbeddingSimilarityEvaluator(sent1s, sent2s, scores)
 
 
-def fine_tune(base_model_name, train_data_path, batch_size=256, epochs=1, evaluation_steps=5000, warmup_steps=5000,
+def fine_tune(base_model_name, train_bios, batch_size=256, epochs=1, evaluation_steps=5000, warmup_steps=5000,
               checkpoint_save_steps=35000, output_path='contrastive_learning_model'):
 
-    train_bios = load_pickled_data(train_data_path)
     pi_neighborhoods = build_neighborhood_dict(train_bios)
 
     triples = generate_triples(train_bios, pi_neighborhoods)
@@ -88,12 +94,11 @@ def fine_tune(base_model_name, train_data_path, batch_size=256, epochs=1, evalua
     print(f"Number of validation samples: {len(validation_triples)}")
 
     train_examples = prepare_train_set(train_triples)
-    validation_examples = prepare_train_set(validation_triples)
 
     model = SentenceTransformer(base_model_name)
 
     train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=batch_size)
-    train_loss = losses.CosiSimilarityLoss(model=model)
+    train_loss = losses.CosineSimilarityLoss(model=model)
 
     model.fit(
         train_objectives=[(train_dataloader, train_loss)],
@@ -104,6 +109,8 @@ def fine_tune(base_model_name, train_data_path, batch_size=256, epochs=1, evalua
         checkpoint_save_steps=checkpoint_save_steps,
         output_path=output_path,
     )
+
+    return model
 
 
 def main():
@@ -119,7 +126,9 @@ def main():
     parser.add_argument("--output_path", type=str, default='contrastive_learning_model')
     args = parser.parse_args()
 
-    fine_tune(args.base_model_name, args.train_data_path, args.batch_size, args.epochs, args.evaluation_steps,
+    train_bios = load_pickled_data(args.train_data_path)
+
+    fine_tune(args.base_model_name, train_bios, args.batch_size, args.epochs, args.evaluation_steps,
               args.warmup_steps, args.checkpoint_save_steps, args.output_path)
 
 
