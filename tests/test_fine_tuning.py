@@ -1,8 +1,8 @@
 import pytest
-from src.models.w2v import train_w2v_model
-from src.models.masked_pi_modeling import prepare_train_dataset, fine_tune_masked_lm, load_clm_model_and_tokenizer,\
+from src.training.w2v import train_w2v_model
+from src.training.masked_pi_modeling import prepare_train_dataset, fine_tune_masked_lm, load_clm_model_and_tokenizer,\
     whole_pi_masking_data_collator
-from src.models.contrastive_learning import generate_triples, build_neighborhood_dict, Triple, fine_tune
+from src.training.contrastive_learning import generate_triples, build_neighborhood_dict, Triple, fine_tune
 from datasets import DatasetDict
 import numpy as np
 import torch
