@@ -1,9 +1,15 @@
 from gensim.models import Word2Vec
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModel
-from src.rank import create_restricted_target_test_dataset
+from src.rank import create_restricted_target_test_dataset, calculate_rankings
 
+import argparse
 import numpy as np
+import yaml
+import os
+
+
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def load_w2v_model(path):
@@ -25,13 +31,18 @@ def load_bert_based_model(path, device='cpu'):
 
 
 def load_model(config):
+    if config.fine_tuned:
+        path = os.path.join(root_dir, config.model_path)
+    else:
+        path = config.model_path
+
     tokenizer = None
     if config.base_model == 'w2v':
-        model = load_w2v_model(config.model_path)
+        model = load_w2v_model(path)
     elif config.base_model == 'sbert':
-        model = load_sbert_based_model(config.model_path, config.device)
+        model = load_sbert_based_model(path, config.device)
     elif config.base_model == 'bert':
-        model, tokenizer = load_bert_based_model(config.model_path, config.device)
+        model, tokenizer = load_bert_based_model(path, config.device)
     else:
         raise NotImplementedError()
 
@@ -44,9 +55,11 @@ def get_vocab_from_w2v_model(path):
 
 
 def load_dataset(config):
+    w2v_path = os.path.join(root_dir, config.w2v_model_path)
     test_ds, vocab = create_restricted_target_test_dataset(
+        base_path=os.path.join(root_dir, 'data'),
         dataset=config.dataset,
-        vocab=get_vocab_from_w2v_model(config.w2v_model_path),
+        vocab=get_vocab_from_w2v_model(w2v_path),
         generalization=config.generalization,
     )
 
@@ -62,7 +75,53 @@ def load_dataset(config):
     return test_ds, vocab
 
 
+def load_config(path):
+    class Config:
+        def __init__(self, dictionary):
+            self.dictionary = dictionary
+
+        def __getattr__(self, item):
+            if item not in self.dictionary:
+                return None
+            return self.dictionary[item]
+
+        def __repr__(self):
+            return str(self.dictionary)
+
+    with open(path, 'r') as f:
+        config = yaml.safe_load(f)
+    return Config(config)
 
 
+def main():
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, required=True, help='path to yaml config file')
+    args = parser.parse_args()
+
+    config = load_config(args.config)
+
+    print(f"config: {config}")
+
+    model, tokenizer = load_model(config)
+    test_ds, vocab = load_dataset(config)
+
+    print(f"test dataset size: {len(test_ds)}")
+
+    target_ranks, softmax_scores = calculate_rankings(
+        model=model,
+        dataset=test_ds,
+        pi_dict=vocab,
+        device=config.device,
+        cosine_bs=config.cosine_bs,
+        emb_bs=config.emb_bs,
+        default_encoder=config.base_model == 'sbert',
+        w2v=config.base_model == 'w2v',
+        tokenizer=tokenizer,
+        average_k_layers=config.average_k_layers,
+    )
+
+
+if __name__ == '__main__':
+    main()
 

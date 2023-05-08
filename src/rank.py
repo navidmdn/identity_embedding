@@ -3,6 +3,7 @@ import torch
 from sentence_transformers import SentenceTransformer, models, util
 from torch.nn.functional import log_softmax
 import pickle
+import os
 
 
 def get_bertbased_results_batched(model, tokenizer, str_l, bs=256, average_k_layers=1, device='cpu'):
@@ -55,8 +56,8 @@ def normalize(word_vectors):
     return res
 
 
-def load_bios(dataset='twitter', mode='tests'):
-    with open(f'data/{dataset}_{mode}_bios.pkl', 'rb') as f:
+def load_bios(base_path, dataset='twitter', mode='test'):
+    with open(os.path.join(base_path, f'{dataset}_{mode}_bios.pkl'), 'rb') as f:
         bios = pickle.load(f)
 
     # filter only bios with more than 1 PI
@@ -97,10 +98,10 @@ def build_restricted_target_dataset(bios, vocab, generalization):
     return test_ds
 
 
-def create_restricted_target_test_dataset(dataset, vocab, generalization=False):
+def create_restricted_target_test_dataset(base_path, dataset, vocab, generalization=False):
     print(f"creating dataset for {dataset}:")
 
-    test_bios = load_bios(dataset)
+    test_bios = load_bios(base_path, dataset)
     print(f"total test bios: {len(test_bios)}")
 
     filtered_test_bios = []
