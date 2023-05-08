@@ -15,8 +15,7 @@ for both Twitter and Wikipedia datasets.
 
 ## Training models from scratch
 
-### Training the word2vec model for twitter
-
+### Training the word2vec model
 ```bash
 python train_word2vec.py \
  --input twitter_cleaned_train_bios_100.pkl 
@@ -24,3 +23,21 @@ python train_word2vec.py \
 ```
 
 ### Training the bert model
+```bash
+python masked_pi_modeling.py \
+ --input_file twitter_cleaned_train_bios_100.pkl \
+ --model_name bert-base-uncased \ 
+ --output_dir models/bert_twitter
+```
+
+### Training sentence-bert model
+```bash
+python contrastive_learning.py \
+ --base_model_name all-mpnet-base-v2 \
+ --train_data_path twitter_cleaned_train_bios_100.pkl \
+ --output_path models/sbertft_twitter
+```
+
+## Running experiments in paper
+
+### hold one out experiment
