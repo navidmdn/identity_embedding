@@ -3,6 +3,7 @@ from typing import List, Dict, Union
 import os
 import shutil
 
+
 def load_pickled_data(path) -> Union[List[str], List[List[str]]]:
     with open(path, 'rb') as f:
         data = pickle.load(f)

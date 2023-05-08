@@ -1,8 +1,8 @@
 
 base_model: sbert
-dataset: twitter
-model_path: models/mpnet-twitter-freq100
-w2v_model_path: models/w2v_negsampling_twitter_100.model
+dataset: wiki
+model_path: models/mpnet-wiki-freq3
+w2v_model_path: models/w2v_cbow_wiki_3.model
 device: cpu
 emb_bs: 32
 cosine_bs: 32

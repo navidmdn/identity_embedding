@@ -1,0 +1,8 @@
+
+base_model: w2v
+dataset: wiki
+model_path: models/w2v_cbow_wiki_3.model
+w2v_model_path: models/w2v_cbow_wiki_3.model
+fine_tuned: True
+generalization: False
+sample_size: -1
