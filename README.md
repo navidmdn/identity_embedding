@@ -42,3 +42,15 @@ PYTHONPATH=. python src/training/contrastive_learning.py \
 ## Running experiments in paper
 
 ### hold one out experiment
+
+There are multiple yaml config files for different experiments that are
+conducted in the paper. To run the hold one out experiment, based on any of them
+run the following command:
+
+```bash
+PYTHONPATH=. python src/experiments/experiments.py \
+ --config src/experiments/sbertft_twitter.yaml
+```
+
+You can write your own config file or modify the desired experiment.
+

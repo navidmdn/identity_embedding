@@ -121,6 +121,10 @@ def main():
         average_k_layers=config.average_k_layers,
     )
 
+    print(f"average rank: {np.mean(target_ranks)}")
+    print(f"average softmax score: {np.mean(softmax_scores)}")
+    print(f"top100-accuracy: {np.mean(np.array(target_ranks) <= 100)}")
+
 
 if __name__ == '__main__':
     main()
