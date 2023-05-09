@@ -54,3 +54,21 @@ PYTHONPATH=. python src/experiments/experiments.py \
 
 You can write your own config file or modify the desired experiment.
 
+
+## Embedding projection using sentence bert model
+
+To project the embeddings of the sentence bert model to a custom dimension space, you can
+use the script in `src/inference/projection.py` to generate those embeddings. Here's a sample
+code to use that.
+
+```python
+from src.inference.projection import load_sbert_based_model, get_sentence_projections
+
+model = load_sbert_based_model('navidmadani/mpnet-twitter-freq100')
+get_sentence_projections(['black lives matter', 'get vaccinated asap'], model, as_dict=True) 
+```
+
+The sample code uses the pretrained model `navidmadani/mpnet-twitter-freq100` which is trained on the twitter and is automatically
+downloaded from Huggingface. If you wish to use your own model, you can pass the path to your fine-tuned sbert model.
+
+Note that you can define new dimensions to project on inside the `src/inference/projection.py` file.
