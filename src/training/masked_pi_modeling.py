@@ -98,12 +98,12 @@ def fine_tune_masked_lm(bios: List[List[str]], model_name: str, tokenizer_name: 
         # output_dir: directory where the model checkpoints will be saved.
         output_dir=output_dir,
         overwrite_output_dir=True,
-        evaluation_strategy="steps",
+        evaluation_strategy="epoch",
         eval_steps=logging_steps,
         logging_strategy="steps",
         logging_steps=logging_steps,
-        save_strategy="steps",
-        save_steps=logging_steps,
+        save_strategy="epoch",
+        save_steps=1,
         learning_rate=2e-5,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
@@ -135,7 +135,7 @@ def main():
     parser.add_argument("--max_length", type=int, default=80)
     parser.add_argument("--max_train_samples", type=int, default=int(1e6))
     parser.add_argument("--max_val_samples", type=int, default=int(1e4))
-    parser.add_argument("--epochs", type=int, default=1)
+    parser.add_argument("--epoch", type=int, default=1)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--output_dir", type=str, default="./results")
     parser.add_argument("--input_file", type=str)
@@ -145,7 +145,7 @@ def main():
     bios = load_pickled_data(args.input_file)
 
     fine_tune_masked_lm(bios, args.model_name, args.tokenizer_name, args.max_length, args.max_train_samples,
-                        args.max_val_samples, args.epochs, args.batch_size, args.output_dir)
+                        args.max_val_samples, args.epoch, args.batch_size, args.output_dir)
 
 
 if __name__ == "__main__":
