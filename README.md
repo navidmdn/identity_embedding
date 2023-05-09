@@ -4,8 +4,9 @@ This repository contains code for the paper "X" (link to paper).
 
 ## Requirements
 
-This project was tested on Ubuntu 20.04 with Python 3.8.5 and PyTorch 1.7.1. The required packages are listed in
-`requirements.txt`.
+This project was tested on Ubuntu 20.04 with Python 3.8. The required packages are listed in
+`requirements.txt`. Install them with `pip install -r requirements.txt`.
+
 
 ## Getting data
 
@@ -17,24 +18,24 @@ for both Twitter and Wikipedia datasets.
 
 ### Training the word2vec model
 ```bash
-python train_word2vec.py \
- --input twitter_cleaned_train_bios_100.pkl 
+PYTHONPATH=. python src/training/w2v.py \
+ --input data/twitter_cleaned_train_bios_100.pkl \
  --output models/w2v_negsampling_twitter_100.model
 ```
 
 ### Training the bert model
 ```bash
-python masked_pi_modeling.py \
- --input_file twitter_cleaned_train_bios_100.pkl \
+PYTHONPATH=. python src/training/masked_pi_modeling.py \
+ --input_file data/twitter_cleaned_train_bios_100.pkl \
  --model_name bert-base-uncased \ 
  --output_dir models/bert_twitter
 ```
 
 ### Training sentence-bert model
 ```bash
-python contrastive_learning.py \
+PYTHONPATH=. python src/training/contrastive_learning.py \
  --base_model_name all-mpnet-base-v2 \
- --train_data_path twitter_cleaned_train_bios_100.pkl \
+ --train_data_path data/twitter_cleaned_train_bios_100.pkl \
  --output_path models/sbertft_twitter
 ```
 

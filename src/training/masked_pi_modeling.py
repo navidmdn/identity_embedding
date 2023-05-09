@@ -1,6 +1,5 @@
 from datasets import Dataset
 import pandas as pd
-import collections
 import numpy as np
 from transformers import TrainingArguments
 from transformers import Trainer
@@ -9,6 +8,9 @@ from typing import List
 from transformers import AutoModelForMaskedLM
 from transformers import AutoTokenizer
 from src.util import load_pickled_data, remove_file_or_dir
+from sklearn.model_selection import train_test_split
+
+import torch
 
 
 def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
@@ -17,6 +19,7 @@ def load_clm_model_and_tokenizer(model_name: str, tokenizer_name: str = None):
 
     model = AutoModelForMaskedLM.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
     return model, tokenizer
 
 
@@ -38,11 +41,13 @@ def whole_pi_masking_data_collator(tokenizer):
 
 def prepare_train_dataset(bios: List[List[str]], tokenizer, max_length: int = 80,
                           max_train_samples: int = int(1e6), max_val_samples: int = int(1e4)):
+
+    shuffle_idxs = np.arange(len(bios))
+    np.random.shuffle(shuffle_idxs)
+    bios = [bios[i] for i in shuffle_idxs][:max_train_samples+max_val_samples]
+
     train_df = pd.DataFrame([{'bios': ", ".join(t), "bios_l": t} for t in bios])
     train_dataset = Dataset.from_pandas(train_df)
-
-    # before masking we need to tokenize the bios and get the label ids
-    label_ids = tokenizer(train_dataset["bios"], padding='max_length', max_length=max_length, truncation=True)["input_ids"]
 
     def preprocess(examples):
         # randomly mask one pi in each bio
@@ -59,15 +64,22 @@ def prepare_train_dataset(bios: List[List[str]], tokenizer, max_length: int = 80
         examples['bios'] = masked_examples
 
         result = tokenizer(examples["bios"], padding='max_length', max_length=80, truncation=True)
-        result["labels"] = label_ids
         return result
 
     tokenized_dataset = train_dataset.map(
-        preprocess, batched=True, remove_columns=["bios", "bios_l"], batch_size=250, num_proc=1
+        preprocess, batched=True, remove_columns=["bios_l"], batch_size=250, num_proc=10
+    )
+
+    def assign_label_ids(examples):
+        label_ids = tokenizer(examples["bios"], padding='max_length', max_length=max_length, truncation=True)["input_ids"]
+        return {"labels": label_ids}
+
+    tokenized_dataset = tokenized_dataset.map(
+        assign_label_ids, batched=True, remove_columns=["bios"], batch_size=250, num_proc=10
     )
 
     sampled_dataset = tokenized_dataset.train_test_split(
-        train_size=max_train_samples, test_size=max_val_samples, shuffle=True)
+        train_size=max_train_samples, test_size=max_val_samples)
 
     return sampled_dataset
 
@@ -126,7 +138,7 @@ def main():
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--output_dir", type=str, default="./results")
-    parser.add_argument("input_file", type=str)
+    parser.add_argument("--input_file", type=str)
     args = parser.parse_args()
 
     # load bios

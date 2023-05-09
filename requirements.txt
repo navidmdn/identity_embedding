@@ -1,0 +1,4 @@
+gensim==4.2.0
+sentence-transformers==2.2.2
+transformers==4.28.1
+datasets==2.12.0
