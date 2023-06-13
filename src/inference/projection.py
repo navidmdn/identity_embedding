@@ -3,12 +3,13 @@ from numpy import linalg as LA
 import numpy as np
 
 projection_measures = [
+
     {
         "group":
             "age",
         "names": ['young', 'old'],
-        "sets": [['young', 'new', 'youthful', 'young'],
-                 ['old', 'old', 'elderly', 'aged']],
+        "sets": [['young', 'youthful', "15 years old", "18 years old"],
+                 ['old', 'elderly', 'retired', 'grandparent']],
         "paper":
             "this_long",
         "is_paired":
@@ -16,45 +17,147 @@ projection_measures = [
     },
     {
         "group":
-        "politics",
+            "partisanship",
         "names": ['democrat', 'republican'],
-        "sets": [['democratic party supporter', 'left-leaning', 'democrat'], ['republican party supporter', 'right-leaning', 'republican']],
+        "sets": [['democrat', 'left-leaning', 'liberal', 'bluewave'],
+                 ['republican', 'right-leaning', 'conservative', 'maga']],
         "paper":
-        "unk",
+            "unk",
         "is_paired":
-        True
+            True
     },
+
     {
         "group":
-        "religion",
+            "establishment",
+        "names": ['antiestablishment', 'establishment'],
+        "sets": [['anti-establishment', 'draintheswamp', 'socialist', 'truth seeker'],
+                 ['proud democrat', 'proud republican', 'uniteblue', 'constitutionalist']],
+        "paper":
+            "unk",
+        "is_paired":
+            True
+    },
+
+    {
+        "group":
+            "religion",
         "names": ['atheist', 'religious'],
-        "sets": [['atheistic', 'agnostic', 'non-believing', 'skeptical'], ['religious', 'faithful', 'christian', 'believe in lord']],
+        "sets": [['atheist', 'agnostic', 'non-believing', 'secular', 'not religious'],
+                 ['religious', 'faithful', 'god', 'believe in lord',
+                  'jesus', 'christian']],
         "paper":
-        "unk",
+            "unk",
         "is_paired":
-        True
+            True
     },
     {
         "group":
-        "education",
-        "names": ['educated', 'uneducated'],
-        "sets": [['educated', 'higher education'], ['uneducated', 'unschooled']],
+            "gender",
+        "names": ['woman', 'man'],
+        "sets": [[
+            'woman', 'girl', 'she',
+            'mother',
+            'female', 'her',
+            'herself', 'dad'
+        ],
+            [
+                'man', 'boy', 'he', 'father', 'male', 'him',
+                'himself', 'mom'
+            ]],
         "paper":
-        "unk",
+            "bolukbasi_words",
         "is_paired":
-        True
+            True
     },
     {
         "group":
-        "employment status",
-        "names": ['employed', 'unemployed'],
-        "sets": [['employed', 'hired', 'working', 'on the job'], ['unemployed', 'jobless', 'out of work', 'retired']],
+            "politics",
+        "names": ['apolotical', 'political'],
+        "sets": [[
+            'music', 'sports', 'culture', 'tech'
+        ],
+            [
+                'politics', 'political', 'democrat', 'republican'
+            ]],
         "paper":
-        "unk",
+            "bolukbasi_words",
         "is_paired":
-        True
+            True
     }
 ]
+
+# projection_measures = [
+#
+#     {
+#         "group":
+#             "age",
+#         "names": ['young', 'old'],
+#         "sets": [['young', 'new', 'youthful', 'young'],
+#                  ['old', 'old', 'elderly', 'aged']],
+#         "paper":
+#             "this_long",
+#         "is_paired":
+#             True
+#     },
+#     {
+#         "group":
+#         "politics",
+#         "names": ['democrat', 'republican'],
+#         "sets": [['democratic party supporter', 'left-leaning', 'democrat'], ['republican party supporter', 'right-leaning', 'republican']],
+#         "paper":
+#         "unk",
+#         "is_paired":
+#         True
+#     },
+#     {
+#         "group":
+#         "religion",
+#         "names": ['atheist', 'religious'],
+#         "sets": [['atheistic', 'agnostic', 'non-believing', 'skeptical'], ['religious', 'faithful', 'christian', 'believe in lord']],
+#         "paper":
+#         "unk",
+#         "is_paired":
+#         True
+#     },
+#     {
+#         "group":
+#         "education",
+#         "names": ['educated', 'uneducated'],
+#         "sets": [['educated', 'higher education'], ['uneducated', 'unschooled']],
+#         "paper":
+#         "unk",
+#         "is_paired":
+#         True
+#     },
+#     {
+#         "group":
+#         "employment status",
+#         "names": ['employed', 'unemployed'],
+#         "sets": [['employed', 'hired', 'working', 'on the job'], ['unemployed', 'jobless', 'out of work', 'retired']],
+#         "paper":
+#         "unk",
+#         "is_paired":
+#         True
+#     },
+#     {
+#         "group":
+#         "gender",
+#         "names": ['woman', 'man'],
+#         "sets": [[
+#             'woman', 'girl', 'she', 'mother', 'daughter', 'gal', 'female', 'her',
+#             'herself',
+#         ],
+#         [
+#          'man', 'boy', 'he', 'father', 'son', 'guy', 'male', 'his',
+#          'himself'
+#         ]],
+#         "paper":
+#         "bolukbasi_words",
+#         "is_paired":
+#         True
+#     }
+# ]
 
 
 def load_sbert_based_model(model_name, device='cpu'):
