@@ -11,8 +11,7 @@ This project was tested on Ubuntu 20.04 with Python 3.8. The required packages a
 ## Getting data
 
 The data used in the paper is available at [link to data]. Download the 
-data and extract it to the `data` directory. There is the train and test dataset
-for both Twitter and Wikipedia datasets.
+data and extract it to the `data` directory.
 
 ## Training models from scratch
 
@@ -64,11 +63,11 @@ code to use that.
 ```python
 from src.inference.projection import load_sbert_based_model, get_sentence_projections
 
-model = load_sbert_based_model('navidmadani/mpnet-twitter-freq100')
+model = load_sbert_based_model('[ANONYMOUS]')
 get_sentence_projections(['black lives matter', 'get vaccinated asap'], model, as_dict=True) 
 ```
 
-The sample code uses the pretrained model `navidmadani/mpnet-twitter-freq100` which is trained on the twitter and is automatically
+The sample code uses the pretrained model [ANONYMOUS] which is trained on the twitter and is automatically
 downloaded from Huggingface. If you wish to use your own model, you can pass the path to your fine-tuned sbert model.
 
 Note that you can define new dimensions to project on inside the `src/inference/projection.py` file.
