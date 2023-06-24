@@ -131,7 +131,7 @@ old_projection_measures = [
         "gender",
         "names": ['woman', 'man'],
         "sets": [
-            ['mother of x', 'grand mother'], ['father of x', 'grand father']
+            ['mother of', 'grand mother'], ['father of', 'grand father']
         ],
         "paper":
         "bolukbasi_words",
