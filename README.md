@@ -1,6 +1,6 @@
 # identity_embedding
 
-This repository contains code for the paper "X" (link to paper).
+This repository contains code for the paper "[Measuring Dimensions of Self-Presentation in Twitter Bios and their Links to Misinformation Sharing](https://arxiv.org/abs/2305.09548)".
 
 ## Requirements
 
