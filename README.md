@@ -8,9 +8,9 @@ This project was tested on Ubuntu 20.04 with Python 3.8. The required packages a
 `requirements.txt`. Install them with `pip install -r requirements.txt`.
 
 
-## Getting data
+## Getting twitter bios data
 
-The data used in the paper is available at [link to data]. Download the 
+The data used in the paper is available upon request. Contact the last author of the paper to get access to the data. Download the 
 data and extract it to the `data` directory. There is the train and test dataset
 for both Twitter and Wikipedia datasets.
 
